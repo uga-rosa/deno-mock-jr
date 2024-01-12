@@ -46,6 +46,10 @@ export default class Server {
 
     const result = procedure(request.params);
     if ("id" in request && request.id !== undefined) {
+      if (result == null) {
+        const error = createError(JSONRPC.ErrorCode["Invalid params"]);
+        return createResponse(request.id, null, error);
+      }
       return createResponse(request.id, result);
     }
   }
