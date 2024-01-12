@@ -13,7 +13,8 @@ export default class Server {
     this.#procedureMap = procedure;
   }
 
-  call(decoded: string): string {
+  /** If the request is `notify`, return undefined. */
+  call(decoded: string): string | undefined {
     let request;
     try {
       request = JSON.parse(decoded);
@@ -26,9 +27,11 @@ export default class Server {
       if (responses.length > 0) {
         return JSON.stringify(responses);
       }
-      return "";
     } else {
-      return JSON.stringify(this.callFlow(request) ?? "");
+      const resp = this.callFlow(request);
+      if (resp != null) {
+        return JSON.stringify(resp);
+      }
     }
   }
 
