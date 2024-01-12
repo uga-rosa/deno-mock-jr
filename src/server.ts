@@ -13,10 +13,10 @@ export default class Server {
     this.#procedureMap = procedure;
   }
 
-  call(encoded: string): string {
+  call(decoded: string): string {
     let request;
     try {
-      request = JSON.parse(encoded);
+      request = JSON.parse(decoded);
     } catch {
       const error = createError(JSONRPC.ErrorCode["Parse error"]);
       return JSON.stringify(createResponse(null, null, error));

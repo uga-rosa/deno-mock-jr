@@ -31,8 +31,8 @@ Deno.stdin.readable
   .pipeThrough(
     new TransformStream({
       transform(chunk, controller) {
-        const encoded = new TextDecoder().decode(chunk);
-        const resp = server.call(encoded);
+        const decoded = new TextDecoder().decode(chunk);
+        const resp = server.call(decoded);
         controller.enqueue(resp);
       },
     }),
