@@ -1,0 +1,40 @@
+#!/usr/bin/env -S deno run -A
+
+import Server from "../src/server.ts";
+import { createProcedureMap, isDefinition } from "../src/definition.ts";
+import { TOML, YAML } from "../src/deps/std.ts";
+import { u } from "../src/deps/unknownutil.ts";
+
+const server = new Server();
+
+const definitionPaths = Deno.args;
+const definitions = await Promise.all(definitionPaths.map(async (path) => {
+  const text = await Deno.readTextFile(path);
+  let obj;
+  if (path.endsWith(".json")) {
+    obj = JSON.parse(text);
+  } else if (path.endsWith(".toml")) {
+    obj = TOML.parse(text);
+  } else if (/\.ya?ml$/.test(path)) {
+    obj = YAML.parse(text);
+  } else {
+    throw new Error(`Unknown extension of the path: ${path}`);
+  }
+  u.assert(obj, isDefinition);
+  return obj;
+}));
+
+const map = createProcedureMap(...definitions);
+server.setProcedureMap(map);
+
+Deno.stdin.readable
+  .pipeThrough(
+    new TransformStream({
+      transform(chunk, controller) {
+        const encoded = new TextDecoder().decode(chunk);
+        const resp = server.call(encoded);
+        controller.enqueue(resp);
+      },
+    }),
+  ).pipeThrough(new TextEncoderStream())
+  .pipeTo(Deno.stdout.writable);
