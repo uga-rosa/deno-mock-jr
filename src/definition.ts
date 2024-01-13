@@ -21,7 +21,7 @@ type Pattern = u.PredicateType<typeof isPattern>;
 export const isDefinition = is.ObjectOf({
   request: is.OptionalOf(isRecordOfString(is.ArrayOf(isPattern))),
   notify: is.OptionalOf(is.ArrayOf(is.String)),
-});
+}, { strict: true });
 
 export type Definition = u.PredicateType<typeof isDefinition>;
 
