@@ -3,7 +3,11 @@ import { is, u } from "../deps/unknownutil.ts";
 export type VERSION = "2.0";
 export const VERSION: VERSION = "2.0";
 
-export const isID = is.OneOf([is.String, is.Number, is.Null]);
+function isInteger(x: unknown): x is number {
+  return Number.isInteger(x);
+}
+
+export const isID = is.OneOf([is.String, isInteger, is.Null]);
 export type ID = u.PredicateType<typeof isID>;
 
 // Request
@@ -31,16 +35,6 @@ export const isRequestLoose = is.ObjectOf({
   id: is.OptionalOf(isID),
 }, { strict: true });
 
-export function maybeRequestBatch(
-  x: unknown,
-): RequestLoose[] | undefined {
-  if (is.ArrayOf(isRequestLoose)(x)) {
-    return x;
-  } else if (isRequestLoose(x)) {
-    return [x];
-  }
-}
-
 // Response
 
 export const isSuccessResponse = is.ObjectOf({
@@ -57,11 +51,11 @@ export const ErrorCode = {
   "Invalid params": -32602,
   "Internal error": -32603,
 } as const;
-export const isErrorCode = is.LiteralOneOf(Object.values(ErrorCode));
-export type ErrorCode = u.PredicateType<typeof isErrorCode>;
+export const isErrorCode = isInteger;
+export type ErrorCode = number;
 
 export const isError = is.ObjectOf({
-  code: is.Number,
+  code: isInteger,
   message: is.String,
   data: is.OptionalOf(is.Unknown),
 }, { strict: true });
