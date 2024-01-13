@@ -1,5 +1,6 @@
 import { Server } from "./server.ts";
 import { createProcedureMap, isDefinition } from "./definition.ts";
+import { LspDecoderStream, LspEncoderStream } from "./lsp_stream.ts";
 import { TOML, YAML } from "./deps/std.ts";
 import { u } from "./deps/unknownutil.ts";
 
@@ -26,15 +27,15 @@ const map = createProcedureMap(...definitions);
 server.setProcedureMap(map);
 
 Deno.stdin.readable
+  .pipeThrough(new LspDecoderStream())
   .pipeThrough(
     new TransformStream({
       transform(chunk, controller) {
-        const decoded = new TextDecoder().decode(chunk);
-        const resp = server.call(decoded);
+        const resp = server.call(chunk);
         if (resp != null) {
           controller.enqueue(resp);
         }
       },
     }),
-  ).pipeThrough(new TextEncoderStream())
+  ).pipeThrough(new LspEncoderStream())
   .pipeTo(Deno.stdout.writable);
