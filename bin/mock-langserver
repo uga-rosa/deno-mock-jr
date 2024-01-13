@@ -1,6 +1,6 @@
 #!/usr/bin/env -S deno run -A
 
-import Server from "../src/server.ts";
+import { Server } from "../src/server.ts";
 import { createProcedureMap, isDefinition } from "../src/definition.ts";
 import { TOML, YAML } from "../src/deps/std.ts";
 import { u } from "../src/deps/unknownutil.ts";

@@ -4,7 +4,7 @@ import { is } from "./deps/unknownutil.ts";
 
 export type ProcedureMap = Map<string, (params?: unknown) => unknown>;
 
-export default class Server {
+export class Server {
   #procedureMap: ProcedureMap = new Map();
 
   constructor() {}
@@ -47,7 +47,13 @@ export default class Server {
       return createResponse(extractID(request), null, error);
     }
 
-    const result = procedure(request.params);
+    let result;
+    try {
+      result = procedure(request.params);
+    } catch (e) {
+      const error = createError(JSONRPC.ErrorCode["Internal error"], `${e}`);
+      return createResponse(extractID(request), error);
+    }
     if (request.id !== undefined) {
       if (result == null) {
         const error = createError(JSONRPC.ErrorCode["Invalid params"]);
