@@ -2,14 +2,24 @@
 
 Mock server based on JSON-RPC.
 
+# Installation
+
+Use `deno install` to install or update `mock-langserver`.
+
+```bash
+deno install --allow-read -n mock-langserver https://deno.land/x/mock_jr/main.ts
+```
+
 # Usage
 
 ## As a language server
 
+### Installation
+
 To act as a language server, standard input/output is used to request/response.
 
 ```bash
-./bin/mock-langserver /path/to/def.yaml
+mock-langserver /path/to/def.yaml
 ```
 
 All arguments are considered paths to definition files.
