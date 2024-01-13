@@ -39,7 +39,7 @@ export const isRequestLoose = is.ObjectOf({
 
 export const isSuccessResponse = is.ObjectOf({
   jsonrpc: is.LiteralOf(VERSION),
-  result: is.Unknown,
+  result: <T>(x: T | undefined): x is T => x !== undefined,
   id: isID,
 }, { strict: true });
 export type SuccessResponse = u.PredicateType<typeof isSuccessResponse>;
@@ -55,7 +55,7 @@ export const isErrorCode = isInteger;
 export type ErrorCode = number;
 
 export const isError = is.ObjectOf({
-  code: isInteger,
+  code: isErrorCode,
   message: is.String,
   data: is.OptionalOf(is.Unknown),
 }, { strict: true });
