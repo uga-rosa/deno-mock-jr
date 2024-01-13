@@ -12,7 +12,11 @@ export function createError(
   if (message == null) {
     message = Message[code] ?? "";
   }
-  return { code, message, data };
+  const error: JSONRPC.Error = { code, message };
+  if (data != null) {
+    error.data = data;
+  }
+  return error;
 }
 
 export function createResponse(
