@@ -52,7 +52,7 @@ export class Server {
       result = procedure(request.params);
     } catch (e) {
       const error = createError(JSONRPC.ErrorCode["Internal error"], `${e}`);
-      return createResponse(extractID(request), error);
+      return createResponse(extractID(request), null, error);
     }
     if (request.id !== undefined) {
       if (result == null) {
