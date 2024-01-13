@@ -6,7 +6,7 @@ Mock server based on JSON-RPC.
 
 ## As a language server
 
-To act as a language server, standard input/output is used to request.
+To act as a language server, standard input/output is used to request/response.
 
 ```bash
 ./bin/mock-langserver /path/to/def.yaml
