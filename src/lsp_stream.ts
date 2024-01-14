@@ -57,6 +57,7 @@ export class LspDecoderStream extends TransformStream<Uint8Array, string> {
       controller.enqueue(this.#decoder.decode(content));
       this.#buf = this.#buf.subarray(contentLength);
       this.#mode = Mode.Header;
+      this.#header = {};
     }
   }
 
