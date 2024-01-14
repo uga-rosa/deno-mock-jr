@@ -24,6 +24,11 @@ const responses = [
 Deno.test({
   name: "test for mock-langserver",
   fn: async () => {
+    // In Windows, spawn is broken (Deno 1.39.4)
+    if (Deno.build.os === "windows") {
+      return;
+    }
+
     const root = new URL("../", import.meta.url).pathname;
 
     const process = new Deno.Command(Deno.execPath(), {
