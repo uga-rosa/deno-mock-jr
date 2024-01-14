@@ -34,28 +34,30 @@ export class LspDecoderStream extends TransformStream<Uint8Array, string> {
     controller: TransformStreamDefaultController<string>,
   ) {
     this.#buf = bytes.concat([this.#buf, chunk]);
-    const point = bytes.indexOfNeedle(this.#buf, separator);
 
-    if (this.#mode === Mode.Header) {
-      if (point === -1) {
+    while (true) {
+      if (this.#mode === Mode.Header) {
+        const point = bytes.indexOfNeedle(this.#buf, separator);
+        if (point === -1) {
+          return;
+        }
+        const header = this.#buf.subarray(0, point);
+        this.#setHeader(header);
+        this.#buf = this.#buf.subarray(point + 4);
+        this.#mode = Mode.Content;
+      }
+
+      const contentLength = this.#header.length;
+      if (contentLength == null) {
+        throw new Error("Content-Length not specified");
+      } else if (this.#buf.length < contentLength) {
         return;
       }
-      const header = this.#buf.subarray(0, point);
-      this.#setHeader(header);
-      this.#buf = this.#buf.subarray(point + 4);
-      this.#mode = Mode.Content;
+      const content = this.#buf.subarray(0, contentLength);
+      controller.enqueue(this.#decoder.decode(content));
+      this.#buf = this.#buf.subarray(contentLength);
+      this.#mode = Mode.Header;
     }
-
-    const contentLength = this.#header.length;
-    if (contentLength == null) {
-      throw new Error("Content-Length not specified");
-    } else if (this.#buf.length < contentLength) {
-      return;
-    }
-    const content = this.#buf.subarray(0, contentLength);
-    controller.enqueue(this.#decoder.decode(content));
-    this.#buf = this.#buf.subarray(contentLength);
-    this.#mode = Mode.Header;
   }
 
   /*

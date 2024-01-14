@@ -1,20 +1,30 @@
 import { LspDecoderStream, LspEncoderStream } from "./lsp_stream.ts";
-import { assertEquals } from "./deps/std.ts";
+import { assert } from "./deps/std.ts";
+
+const Encoder = new TextEncoder();
+function lspEncode(content: string): string {
+  const contentBytes = Encoder.encode(content);
+  const header = `Content-Length: ${contentBytes.byteLength}`;
+  return `${header}\r\n\r\n${content}`;
+}
 
 Deno.test({
   name: "lsp_stream",
   fn: async () => {
-    const header = `Content-Length: 9`;
-    const content = `{"foo":1}`;
-    const whole = `${header}\r\n\r\n${content}`;
+    const content1 = `{"foo":"bar"}`;
+    const lsp1 = lspEncode(content1);
+    const content2 = `{"baz":[1,2,3]}`;
+    const lsp2 = lspEncode(content2);
 
-    await ReadableStream.from(whole)
+    await ReadableStream.from([lsp1, lsp2])
       .pipeThrough(new TextEncoderStream())
       .pipeThrough(new LspDecoderStream())
       .pipeThrough(
         new TransformStream({
           transform: (chunk, controller) => {
-            assertEquals(chunk, content);
+            if (chunk !== content1 && chunk !== content2) {
+              assert(false);
+            }
             controller.enqueue(chunk);
           },
         }),
@@ -24,7 +34,9 @@ Deno.test({
       .pipeTo(
         new WritableStream({
           write: (chunk) => {
-            assertEquals(chunk, whole);
+            if (chunk !== lsp1 && chunk !== lsp2) {
+              assert(false);
+            }
           },
         }),
       );
