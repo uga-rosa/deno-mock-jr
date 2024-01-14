@@ -60,9 +60,7 @@ Deno.serve(async (req) => {
   if (req.body) {
     const decoded = await req.text();
     const resp = serv.call(decoded);
-    if (resp != null) {
-      return new Response(resp);
-    }
+    return new Response(resp);
   }
   return new Response();
 });
@@ -74,7 +72,7 @@ const resp = await fetch("http://localhost:8000", {
   headers: {
     "Content-Type": "application/json",
   },
-  body: JSON.stringify({ jsonrpc: "2.0", method: "add", params: [1, 2, "3"], id: 1 }),
+  body: JSON.stringify({ jsonrpc: "2.0", method: "add", params: [1, 2, 3], id: 1 }),
 });
 
 console.log(await resp.text());
