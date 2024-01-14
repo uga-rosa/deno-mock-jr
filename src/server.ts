@@ -19,7 +19,7 @@ export class Server {
     try {
       request = JSON.parse(decoded);
     } catch {
-      const error = createError(JSONRPC.ErrorCode["Parse error"]);
+      const error = createError(JSONRPC.ErrorCode["Parse error"], undefined, decoded);
       return JSON.stringify(createResponse(null, null, error));
     }
     if (is.Array(request)) {

@@ -163,10 +163,15 @@ Deno.test({
     await t.step({
       name: "invalid json",
       fn: () => {
-        const resp = server.call(`{"foo":`);
+        const invalidJson = `{"foo":`;
+        const resp = server.call(invalidJson);
         assertEquals(
           resp,
-          JSON.stringify(createResponse(null, null, createError(ErrorCode["Parse error"]))),
+          JSON.stringify(createResponse(
+            null,
+            null,
+            createError(ErrorCode["Parse error"], undefined, invalidJson),
+          )),
         );
       },
     });
