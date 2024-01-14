@@ -1,0 +1,14 @@
+request:
+  add:
+    - params: [1, 2]
+      result: 3
+    - params: [3, 4, 5]
+      result: 12
+  sub:
+    - params: [3, 1]
+      result: 2
+    - params: [9, 3]
+      result: 6
+notify:
+  - update
+  - notify_hello
