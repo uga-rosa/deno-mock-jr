@@ -9,7 +9,7 @@ Mock server based on JSON-RPC.
 Use `deno install` to install or update `mock-langserver`.
 
 ```bash
-deno install --allow-read -n mock-langserver https://deno.land/x/mock_jr/main.ts
+deno install -f --allow-read -n mock-langserver https://deno.land/x/mock_jr/main.ts
 ```
 
 # Usage
