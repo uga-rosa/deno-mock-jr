@@ -1,4 +1,4 @@
-import { createError, createResponse, extractID } from "./util.ts";
+import { createError, createNotify, createRequest, createResponse, extractID } from "./util.ts";
 import { assertEquals, assertThrows } from "../deps/std.ts";
 
 Deno.test({
@@ -87,6 +87,54 @@ Deno.test({
       name: "notify",
       fn: () => {
         assertEquals(extractID({ jsonrpc: "2.0", method: "foo" }), null);
+      },
+    });
+  },
+});
+
+Deno.test({
+  name: "createRequest",
+  fn: async (t) => {
+    await t.step({
+      name: "no params",
+      fn: () => {
+        assertEquals(
+          createRequest(1, "foo"),
+          { jsonrpc: "2.0", method: "foo", id: 1 },
+        );
+      },
+    });
+    await t.step({
+      name: "with params",
+      fn: () => {
+        assertEquals(
+          createRequest(2, "add", [1, 2]),
+          { jsonrpc: "2.0", method: "add", params: [1, 2], id: 2 },
+        );
+      },
+    });
+  },
+});
+
+Deno.test({
+  name: "createNotify",
+  fn: async (t) => {
+    await t.step({
+      name: "no params",
+      fn: () => {
+        assertEquals(
+          createNotify("foo"),
+          { jsonrpc: "2.0", method: "foo" },
+        );
+      },
+    });
+    await t.step({
+      name: "with params",
+      fn: () => {
+        assertEquals(
+          createNotify("add", [1, 2]),
+          { jsonrpc: "2.0", method: "add", params: [1, 2] },
+        );
       },
     });
   },

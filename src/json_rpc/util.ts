@@ -39,3 +39,33 @@ export function extractID(request: JSONRPC.RequestLoose): JSONRPC.ID {
   }
   return null;
 }
+
+export function createRequest(
+  id: JSONRPC.ID,
+  method: string,
+  params?: unknown,
+): JSONRPC.Request {
+  const req: JSONRPC.Request = {
+    jsonrpc: JSONRPC.VERSION,
+    method,
+    id,
+  };
+  if (params != null) {
+    req.params = params;
+  }
+  return req;
+}
+
+export function createNotify(
+  method: string,
+  params?: unknown,
+): JSONRPC.Notify {
+  const req: JSONRPC.Notify = {
+    jsonrpc: JSONRPC.VERSION,
+    method,
+  };
+  if (params != null) {
+    req.params = params;
+  }
+  return req;
+}
