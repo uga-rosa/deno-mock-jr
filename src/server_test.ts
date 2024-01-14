@@ -1,6 +1,6 @@
 import { Server } from "./server.ts";
 import { createProcedureMap } from "./definition.ts";
-import { createError, createResponse } from "./json_rpc/util.ts";
+import { createError, createNotify, createRequest, createResponse } from "./json_rpc/util.ts";
 import { ErrorCode } from "./json_rpc/types.ts";
 import { assertEquals } from "./deps/std.ts";
 
@@ -37,7 +37,8 @@ Deno.test({
         await t.step({
           name: `request: ${method}`,
           fn: () => {
-            const resp = server.callFlow({ jsonrpc: "2.0", method, params: def.params, id: 1 });
+            const request = createRequest(1, method, def.params);
+            const resp = server.callFlow(request);
             assertEquals(resp, createResponse(1, def.result));
           },
         });
@@ -47,7 +48,8 @@ Deno.test({
       await t.step({
         name: `notify: ${method}`,
         fn: () => {
-          const resp = server.callFlow({ jsonrpc: "2.0", method });
+          const notify = createNotify(method);
+          const resp = server.callFlow(notify);
           assertEquals(resp, undefined);
         },
       });
@@ -65,7 +67,8 @@ Deno.test({
     await t.step({
       name: "Method not found",
       fn: () => {
-        const error = server.callFlow({ jsonrpc: "2.0", method: "foo", id: 1 });
+        const request = createRequest(1, "foo");
+        const error = server.callFlow(request);
         assertEquals(
           error,
           createResponse(1, null, createError(ErrorCode["Method not found"])),
@@ -75,7 +78,8 @@ Deno.test({
     await t.step({
       name: "Invalid params",
       fn: () => {
-        const error = server.callFlow({ jsonrpc: "2.0", method: "add", params: [1, 2, 3], id: 1 });
+        const request = createRequest(1, "add", [1, 2, 3]);
+        const error = server.callFlow(request);
         assertEquals(
           error,
           createResponse(1, null, createError(ErrorCode["Invalid params"])),
@@ -85,7 +89,8 @@ Deno.test({
     await t.step({
       name: "Internal error",
       fn: () => {
-        const error = server.callFlow({ jsonrpc: "2.0", method: "raise", id: 1 });
+        const request = createRequest(1, "raise");
+        const error = server.callFlow(request);
         assertEquals(
           error,
           createResponse(1, null, createError(ErrorCode["Internal error"], errMsg)),
@@ -102,8 +107,8 @@ Deno.test({
       name: "multi requests",
       fn: () => {
         const resp = server.callBatch([
-          { jsonrpc: "2.0", method: "add", params: definition.request.add[0].params, id: 0 },
-          { jsonrpc: "2.0", method: "add", params: definition.request.add[1].params, id: 1 },
+          createRequest(0, "add", definition.request.add[0].params),
+          createRequest(1, "add", definition.request.add[1].params),
         ]);
         assertEquals(resp, [
           createResponse(0, definition.request.add[0].result),
@@ -115,9 +120,9 @@ Deno.test({
       name: "multi requests and notify",
       fn: () => {
         const resp = server.callBatch([
-          { jsonrpc: "2.0", method: "subtract", params: definition.request.subtract[0].params, id: 0 },
-          { jsonrpc: "2.0", method: "update" },
-          { jsonrpc: "2.0", method: "subtract", params: definition.request.subtract[1].params, id: 1 },
+          createRequest(0, "subtract", definition.request.subtract[0].params),
+          createNotify("update"),
+          createRequest(1, "subtract", definition.request.subtract[1].params),
         ]);
         assertEquals(resp, [
           createResponse(0, definition.request.subtract[0].result),
@@ -129,9 +134,8 @@ Deno.test({
       name: "include invalid request",
       fn: () => {
         const resp = server.callBatch([
-          { jsonrpc: "2.0", method: "subtract", params: [], id: 0 },
-          { jsonrpc: "2.0", method: "update" },
-          { jsonrpc: "2.0", method: "subtract", params: definition.request.subtract[1].params, id: 1 },
+          createRequest(0, "subtract", []),
+          createRequest(1, "subtract", definition.request.subtract[1].params),
         ]);
         assertEquals(resp, [
           createResponse(0, null, createError(ErrorCode["Invalid params"])),
@@ -148,12 +152,8 @@ Deno.test({
     await t.step({
       name: "single request",
       fn: () => {
-        const resp = server.call(JSON.stringify({
-          jsonrpc: "2.0",
-          method: "add",
-          params: definition.request.add[0].params,
-          id: 1,
-        }));
+        const request = createRequest(1, "add", definition.request.add[0].params);
+        const resp = server.call(JSON.stringify(request));
         assertEquals(
           resp,
           JSON.stringify(createResponse(1, definition.request.add[0].result)),
@@ -178,17 +178,11 @@ Deno.test({
     await t.step({
       name: "batch request",
       fn: () => {
-        const resp = server.call(JSON.stringify([{
-          jsonrpc: "2.0",
-          method: "add",
-          params: definition.request.add[0].params,
-          id: 0,
-        }, {
-          jsonrpc: "2.0",
-          method: "add",
-          params: definition.request.add[1].params,
-          id: 1,
-        }]));
+        const requests = [
+          createRequest(0, "add", definition.request.add[0].params),
+          createRequest(1, "add", definition.request.add[1].params),
+        ];
+        const resp = server.call(JSON.stringify(requests));
         assertEquals(
           resp,
           JSON.stringify([
@@ -201,7 +195,8 @@ Deno.test({
     await t.step({
       name: "notify",
       fn: () => {
-        const resp = server.call(JSON.stringify({ jsonrpc: "2.0", method: "update" }));
+        const notify = createNotify("update");
+        const resp = server.call(JSON.stringify(notify));
         assertEquals(resp, undefined);
       },
     });
